@@ -1,0 +1,13 @@
+{
+  "name": "error-manage",
+  "description": "Storing and throwing or logging structured error messages",
+  "version": "0.0.2-test.0",
+  "author": {
+    "name": "hh.lohmann",
+    "email": "hh.lohmann@gmail.com",
+    "url": "https://hh-lohmann.github.io"
+  },
+  "scripts": {
+    "test": "node node-test-runner-version-check.mjs && node --test"
+  }
+}
