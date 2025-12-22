@@ -29,6 +29,24 @@ const my_name = 'error_manage' ;
  *  * default: `'JSON'`
  *  * example: `'key: val'`
  */
+/** @typedef { object } _error_object - catched Error object thrown with `fail()` / `range()` / `reference()` / `syntax()` / `type()`
+ * @prop { string } name
+ * @prop { string } message
+ * @prop { string } [ stack ]
+*/
+/** @typedef { object } _object_from_error_object
+ * @prop { string } type
+ * @prop { string } error_id
+ * @prop { string } dev_msg
+ * @prop { string } [ user_msg ]
+ * @prop { string } [ detected_at ]
+ * @prop { string } [ caused_at ]
+*/
+/** @typedef { object } _structured_error_message_as_object
+ * @prop { string } error_id
+ * @prop { string } dev_msg
+ * @prop { string } [ user_msg ]
+*/
 
 /** @typedef { [ caller: function, name: string, message: string ] } _spread_params_my_error
  * @see MyError
@@ -45,12 +63,12 @@ const error_store = {} ;
 const error_store_exists = ( error_id, action, func ) => {
   if( error_store.hasOwnProperty( error_id ) ) {
     if( action === 'get' ) return true ;
-    set( 'a728e70d', my_name + ' `' + func.name + '()`: error_id `' + error_id + '` is already defined', '' ) ;
+    set( 'a728e70d', my_name + ' `' + func.name + '()`: error_id `' + error_id + '` is already defined' ) ;
     throw syntax_intern( 'a728e70d', func ) ;
   }
   if( ! error_store.hasOwnProperty( error_id ) ) {
     if( action === 'set' ) return true ;
-    set( 'a1bd23d1', my_name + ' `' + func.name + '()`: error_id `' + error_id + '` is not defined', '' ) ;
+    set( 'a1bd23d1', my_name + ' `' + func.name + '()`: error_id `' + error_id + '` is not defined' ) ;
     throw reference_intern( 'a1bd23d1', func ) ;
   }
   return true ;
@@ -95,7 +113,7 @@ const mk_error_message = ( error_id, func, opts = {} ) => {
 /** @typedef { string } _type_rule - Properties associated to an `argument_name`: a type like "string" etc., optionally followed by a rule
  *    * rules = word attached by a comma
  *      * currently recognized rules:
- *        * "non-empty" = argument must not be empty, esp. not an empty string
+ *        * "non-empty" = argument must not be empty
  *        * "optional" = argument is optional
  */
   /** Check number and type of args
@@ -118,9 +136,16 @@ const check_args = ( func, args_array, expected ) => {
       my_arr_opt.push( argument_name + ':' + expected[ argument_name ] )
     }
     else {
-      if( rule && rule === 'non-empty' && args_array[ index ] === '' ) {
-        set( 'b62f9810', my_name + ' `' + func.name + '()`: `' + argument_name + '` must not be empty', '' ) ;
-        throw syntax_intern( 'b62f9810', func ) ;
+      if( rule && rule === 'non-empty' ) {
+        const my_check = () => {
+          if( type === 'function' ) return ;
+          if( typeof(args_array[ index ]) !== type ) return ;
+          if( type === 'string' && args_array[ index ] !== '' ) return ;
+          if( type === 'object' && Object.keys( args_array[ index ] ).length !== 0 ) return ;
+          set( 'b62f9810', my_name + ' `' + func.name + '()`: `' + argument_name + '` must not be empty' ) ;
+          throw syntax_intern( 'b62f9810', func ) ;
+        }
+        my_check() ;
       }
       my_arr_req.push( argument_name + ':' + expected[ argument_name ] )
     }
@@ -135,13 +160,13 @@ const check_args = ( func, args_array, expected ) => {
     const required = ( my_arr_req.length === 0 ) ? '' : 'expects ' + arr_number_fail + my_arr_req.length + ' required' + get_sg_pl( my_arr_req ) ;
     const optional = ( my_arr_opt.length === 0 ) ? '' : 'allows ' + arr_number_fail + my_arr_opt.length + ' optional' + get_sg_pl( my_arr_opt ) ;
     const conjunct = ( my_arr_req.length > 0 && my_arr_opt.length > 0 ) ? ' and ' : '' ;
-    set( '982eb5f8', my_name + ' `' + func.name + '()` ' + required + conjunct + optional + ': ' + my_arr_req.concat( my_arr_opt ).join( ', ' ), '' ) ;
+    set( '982eb5f8', my_name + ' `' + func.name + '()` ' + required + conjunct + optional + ': ' + my_arr_req.concat( my_arr_opt ).join( ', ' ) ) ;
     throw syntax_intern( '982eb5f8', func ) ;
   }
   args_array.forEach( ( arg, index ) => {
     [ type, rule ] = Object.values( expected )[ index ].split( ',' ) ;
     if( type !== 'any' && typeof arg !== type ) {
-      set( '86669f3b', my_name + ' `' + func.name + '()`: `' + arg + '` must be of type `' + type + '`', '' ) ;
+      set( '86669f3b', my_name + ' `' + func.name + '()`: `' + arg + '` must be of type `' + type + '`' ) ;
       throw syntax_intern( '86669f3b', func ) ;
     }
   }) ;
@@ -260,3 +285,36 @@ export function warn( error_id, return_value = true ) {
 export function error( error_id, return_value = true ) {
   return log_emit( error, Array.from( arguments ) ) ;
 }
+
+  /** @type { ( error_object: _error_object ) => object } */
+export function toObject( error_object) {
+  check_args( toObject, Array.from( arguments ), { error_object: 'object,non-empty' } ) ;
+  [ 'name', 'message' ].forEach( value => {
+    if( error_object.hasOwnProperty( value ) ) return ;
+    set( '7d0ba76b', my_name + ' `toObject()`: property `' + value + '` not defined' ) ;
+    throw reference_intern( '7d0ba76b', toObject ) ;
+  });
+    /** @type { _structured_error_message_as_object } */
+  let message_to_obj = { error_id: '', dev_msg: '' } ;
+  try{
+    message_to_obj = JSON.parse( error_object.message ) ;
+  }
+  catch{
+    set( '8b384304', my_name + ' `toObject()`: property `message` is not valid JSON' ) ;
+    throw reference_intern( '8b384304', toObject ) ;
+  }
+    /** @type { _object_from_error_object } */
+  const my_obj = {
+    type: error_object.name,
+    error_id: message_to_obj.error_id,
+    dev_msg: message_to_obj.dev_msg
+  } ;
+  if( message_to_obj.hasOwnProperty( 'user_msg' ) ) my_obj[ 'user_msg' ] = message_to_obj.user_msg ;
+  if( error_object.hasOwnProperty( 'stack' ) && error_object.stack ) {
+    let relevant_lines = error_object.stack.split( '\n' ).filter( value => value.includes( 'file:///' )).map( value => value = value.replaceAll( '  at ', '' ).trim() ) ;
+    if( relevant_lines.length > 0 ) my_obj[ 'detected_at' ] = relevant_lines[ 0 ] ;
+    if( relevant_lines.length > 1 ) my_obj[ 'caused_at' ] = relevant_lines[ 1 ] ;
+  }
+  return my_obj ;
+}
+

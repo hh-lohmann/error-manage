@@ -9,6 +9,84 @@ import { suite, test } from 'node:test';
 import assert from 'assert';
 import * as error_manage from "./error-manage.mjs";
 
+suite( 'toObject()', () => {
+  test( 'should work with correct arg count and types', { todo: false } , () => {
+    error_manage.toObject( { name: 'error_type', message: '{ "error_id": "error_id", "dev_msg": "dev_msg" }' } ) ;
+  });
+  test( 'should throw Structured SyntaxError 982eb5f8 on too few args', { todo: false } , () => {
+    assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg count
+        error_manage.toObject() ;
+      },
+      {
+        name: 'SyntaxError',
+        message: /"error_id":"982eb5f8","dev_msg":"/
+      }
+    );
+  });
+  test( 'should throw Structured SyntaxError 982eb5f8 on too many args', { todo: false } , () => {
+     assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg count
+        error_manage.toObject( { name: 'error_type', message: '{ "error_id": "error_id", "dev_msg": "dev_msg" }' }, 'nonsense' ) ;
+      },
+      {
+        name: 'SyntaxError',
+        message: /"error_id":"982eb5f8","dev_msg":"/
+      }
+    );
+  });
+  test( 'should throw Structured SyntaxError 86669f3b on wrong arg type', { todo: false } , () => {
+     assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg count
+        error_manage.toObject( '{}' ) ;
+      },
+      {
+        name: 'SyntaxError',
+        message: /"error_id":"86669f3b","dev_msg":"/
+      }
+    );
+  });
+  test( 'should throw Structured ReferenceError 7d0ba76b on call without property `name`' , () => {
+    assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg signature
+        error_manage.toObject( { message: 'JSON' } ) ;
+      },
+      {
+        name: 'ReferenceError',
+        message: /"error_id":"7d0ba76b","dev_msg":"/
+      }
+    );
+  });
+  test( 'should throw Structured ReferenceError 7d0ba76b on call without property `message`' , () => {
+    assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg signature
+        error_manage.toObject( { name: 'error_type' } ) ;
+      },
+      {
+        name: 'ReferenceError',
+        message: /"error_id":"7d0ba76b","dev_msg":"/
+      }
+    );
+  });
+  test( 'should throw Structured ReferenceError 8b384304 on call with no valid JSON for property `message`' , () => {
+    assert.throws(
+      () => {
+          // @ts-ignore - intended wrong arg signature
+        error_manage.toObject( { name: 'error_type', message: 'something' } ) ;
+      },
+      {
+        name: 'ReferenceError',
+        message: /"error_id":"8b384304","dev_msg":"/
+      }
+    );
+  });
+});
+
 suite( 'set()', () => {
 
   suite( 'should work with correct arg count and types' , () => {
