@@ -1,7 +1,7 @@
 {
   "name": "error-manage",
   "description": "Storing and throwing or logging structured error messages",
-  "version": "0.0.2-test.2",
+  "version": "0.0.2-test.3",
   "author": {
     "name": "hh.lohmann",
     "email": "hh.lohmann@gmail.com",
