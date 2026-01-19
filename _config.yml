@@ -1,0 +1,25 @@
+title: "Frontend hh.lohmann"
+
+plugins:
+  - jekyll-redirect-from
+  - jekyll-remote-theme
+
+whitelist:
+  - jekyll-redirect-from
+
+remote_theme: just-the-docs/just-the-docs
+
+exclude:
+  - "[0-9]*[ _]*"
+
+defaults:
+  -
+    scope:
+      path: "css"
+    values:
+      layout: "css"
+  -
+    scope:
+      path: ""
+    values:
+      layout: "default"
